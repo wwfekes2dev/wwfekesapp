@@ -17,14 +17,11 @@
 package com.redhat.developers.msa.ola;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.adapters.RefreshableKeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
@@ -36,17 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.github.kristofa.brave.Brave;
-import com.github.kristofa.brave.ServerSpan;
-import com.github.kristofa.brave.http.DefaultSpanNameProvider;
-import com.github.kristofa.brave.httpclient.BraveHttpRequestInterceptor;
-import com.github.kristofa.brave.httpclient.BraveHttpResponseInterceptor;
-
-import feign.Logger;
-import feign.Logger.Level;
-import feign.httpclient.ApacheHttpClient;
-import feign.hystrix.HystrixFeign;
-import feign.jackson.JacksonDecoder;
 import io.swagger.annotations.ApiOperation;
 
 @RestController
@@ -54,7 +40,7 @@ import io.swagger.annotations.ApiOperation;
 public class OlaController {
 
     @Autowired
-    private Brave brave;
+    private HolaService holaService;
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/ola", produces = "text/plain")
@@ -70,7 +56,7 @@ public class OlaController {
     public List<String> sayHelloChaining() {
         List<String> greetings = new ArrayList<>();
         greetings.add(ola());
-        greetings.addAll(getNextService().hola());
+        greetings.addAll(holaService.hola());
         return greetings;
     }
 
@@ -96,30 +82,4 @@ public class OlaController {
     public String health() {
         return "I'm ok";
     }
-
-    /**
-     * This is were the "magic" happens: it creates a Feign, which is a proxy interface for remote calling a REST endpoint with
-     * Hystrix fallback support.
-     *
-     * @return The feign pointing to the service URL and with Hystrix fallback.
-     */
-    private HolaService getNextService() {
-        // This stores the Original/Parent ServerSpan from ZiPkin.
-        final ServerSpan serverSpan = brave.serverSpanThreadBinder().getCurrentServerSpan();
-        final CloseableHttpClient httpclient =
-            HttpClients.custom()
-                .addInterceptorFirst(new BraveHttpRequestInterceptor(brave.clientRequestInterceptor(), new DefaultSpanNameProvider()))
-                .addInterceptorFirst(new BraveHttpResponseInterceptor(brave.clientResponseInterceptor()))
-                .build();
-        return HystrixFeign.builder()
-            // Use apache HttpClient which contains the ZipKin Interceptors
-            .client(new ApacheHttpClient(httpclient))
-            // Bind Zipkin Server Span to Feign Thread
-            .requestInterceptor((t) -> brave.serverSpanThreadBinder().setCurrentSpan(serverSpan))
-            .logger(new Logger.ErrorLogger()).logLevel(Level.BASIC)
-            .decoder(new JacksonDecoder())
-            .target(HolaService.class, "http://hola:8080/",
-                () -> Collections.singletonList("Hola response (fallback)"));
-    }
-
 }
