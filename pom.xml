@@ -47,13 +47,14 @@
 		<!-- other plugin versions -->
 		<keycloak.version>2.4.0.Final</keycloak.version>
 		<openfeign.version>9.4.0</openfeign.version>
-		<openfeign.opentracing.version>0.0.1</openfeign.opentracing.version>
+		<openfeign.opentracing.version>0.0.2</openfeign.opentracing.version>
 		<hystrix.version>1.5.1</hystrix.version>
-		<io.opentracing.version>0.20.9</io.opentracing.version>
-		<io.opentracing.contrib.spring.autoconfigure.version>0.0.2</io.opentracing.contrib.spring.autoconfigure.version>
+		<io.opentracing.version>0.21.0</io.opentracing.version>
+		<io.opentracing.contrib.spring.autoconfigure.version>0.0.3</io.opentracing.contrib.spring.autoconfigure.version>
 		<swagger.version>1.5.8</swagger.version>
 		<springfox.version>2.4.0</springfox.version>
-		<version.brave.opentracing>0.19.2</version.brave.opentracing>
+		<version.brave.opentracing>0.19.3</version.brave.opentracing>
+		<version.jaeger>0.18.0</version.jaeger>
 		<version.zipkin.reporter>0.6.12</version.zipkin.reporter>
 
 		<!-- fabric8 version -->
@@ -158,6 +159,13 @@
 			<groupId>io.zipkin.reporter</groupId>
 			<artifactId>zipkin-sender-urlconnection</artifactId>
 			<version>${version.zipkin.reporter}</version>
+		</dependency>
+
+		<!-- OpenTracing implementation - Jaeger -->
+		<dependency>
+			<groupId>com.uber.jaeger</groupId>
+			<artifactId>jaeger-core</artifactId>
+			<version>${version.jaeger}</version>
 		</dependency>
 
 		<!-- Swagger -->
